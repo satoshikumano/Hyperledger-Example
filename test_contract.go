@@ -206,6 +206,9 @@ func (t *TestContractChainCode) Query(stub shim.ChaincodeStubInterface, function
 	if function == "query_one_contract" {
 		return t.query_one_contract(stub, args)
 	}
+	if function == "query_contract_ancestors" {
+		return t.query_contract_ancestors(stub, args)
+	}
 	return nil, nil
 }
 
@@ -225,6 +228,44 @@ func (t *TestContractChainCode) query_one_contract(stub shim.ChaincodeStubInterf
 		return nil, errors.New("Contract not found.")
 	}
 	return contract_bytes, nil
+}
+
+func (t *TestContractChainCode) get_contract(stub shim.ChaincodeStubInterface, contractId string) (Contract, error) {
+	var contract Contract
+	contract_bytes, err := stub.GetState("contract/" + contractId)
+	if err != nil {
+		return contract, errors.New("Contract not found.")
+	}
+	err = json.Unmarshal(contract_bytes, &contract)
+	if err != nil {
+		return contract, errors.New("Failed to unmarshal contract")
+	}
+	return contract, nil
+}
+
+func (t *TestContractChainCode) query_contract_ancestors(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var contracts []Contract
+	var contract Contract
+	var prevTxId string
+	contract, err := t.get_contract(stub, args[0])
+	if err != nil {
+		return nil, errors.New("Contract not found.")
+	}
+	contracts = append(contracts, contract)
+	prevTxId = contract.PreviousTxId
+	for prevTxId != "" {
+		contract, err := t.get_contract(stub, prevTxId)
+		if err != nil {
+			break
+		}
+		prevTxId = contract.PreviousTxId
+		contracts = append(contracts, contract)
+	}
+	b, err := json.Marshal(contracts)
+	if err != nil {
+		return nil, errors.New("Failed to marshal contracts")
+	}
+	return b, nil
 }
 
 func main() {
