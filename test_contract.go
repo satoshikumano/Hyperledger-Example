@@ -203,6 +203,9 @@ func (t *TestContractChainCode) Query(stub shim.ChaincodeStubInterface, function
 	if function == "query_asset" {
 		return t.query_asset(stub, args)
 	}
+	if function == "query_one_contract" {
+		return t.query_one_contract(stub, args)
+	}
 	return nil, nil
 }
 
@@ -213,6 +216,15 @@ func (t *TestContractChainCode) query_asset(stub shim.ChaincodeStubInterface, ar
 		return nil, errors.New("Asset not found.")
 	}
 	return asset_bytes, nil
+}
+
+func (t *TestContractChainCode) query_one_contract(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	txId := args[0]
+	contract_bytes, err := stub.GetState("contract/" + txId)
+	if err != nil {
+		return nil, errors.New("Contract not found.")
+	}
+	return contract_bytes, nil
 }
 
 func main() {
