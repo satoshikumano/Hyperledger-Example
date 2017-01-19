@@ -67,7 +67,7 @@ func (t *TestContractChainCode) start_trade(stub shim.ChaincodeStubInterface, ar
 	// TODO: only the owner of asset can execute this function.
 	assetId := args[0]
 	previousTxId := args[1]
-	acceptableMinTemp, err := strconv.ParseUint(args[3], 10, 64)
+	acceptableMinTemp, err := strconv.ParseUint(args[2], 10, 64)
 	if err != nil {
 		return nil, errors.New("Failed to parse minTemp.")
 	}
