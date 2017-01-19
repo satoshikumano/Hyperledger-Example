@@ -130,7 +130,7 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 	a, err := json.Marshal(asset)
 	stub.PutState("asset/"+contract.AssetID, a)
 
-	return nil, nil
+	return txId, nil
 }
 
 func (t *TestContractChainCode) update_asset_temperature(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
