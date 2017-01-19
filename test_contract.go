@@ -200,13 +200,19 @@ func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, functio
 
 func (t *TestContractChainCode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	myLogger.Debug("Query Chaincode...")
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+	if function == "query_asset" {
+		return t.query_asset(stub, args)
 	}
+	return nil, nil
+}
 
-	contractId := args[0]
-	state, err := stub.GetState("contracts/" + contractId)
-	return state, err
+func (t *TestContractChainCode) query_asset(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	assetId := args[0]
+	asset_bytes, err := stub.GetState("asset/" + assetId)
+	if err != nil {
+		return nil, errors.New("Asset not found.")
+	}
+	return asset_bytes, nil
 }
 
 func main() {
