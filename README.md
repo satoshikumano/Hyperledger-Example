@@ -111,3 +111,25 @@ POST localhost:7050/chaincode
   "id": 3
 }
 ```
+
+### Query one contract 
+
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "query",
+  "params": {
+      "type": 1,
+      "chaincodeID":{
+          "name":"mycc2"
+      },
+      "ctorMsg": {
+         "args":["query_one_contract", "{transactionID}"]
+      },
+      "secureContext": "lukas"
+  },
+  "id": 3
+}
+```
+
