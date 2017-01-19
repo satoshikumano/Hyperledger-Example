@@ -53,6 +53,7 @@ type Contract struct {
 	AcceptableMaxTemperature uint64
 	Location                 string
 	Completed                bool
+	Warnings		 string
 }
 
 // Init method will be called during deployment.
@@ -82,6 +83,7 @@ func (t *TestContractChainCode) start_trade(stub shim.ChaincodeStubInterface, ar
 		AcceptableMaxTemperature: acceptableMaxTemp,
 		Completed:                false,
 		Location:                 "",
+		Warnings:		  "",
 	}
 	b, err := json.Marshal(contract)
 
@@ -114,11 +116,17 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 
 	if asset.MaxTemperature > contract.AcceptableMaxTemperature {
 		myLogger.Debug("WARNING: Acceptable max temperature is below the asset temperature")
-		return nil, errors.New("max temperature warning")
+		contract.Warnings = "Acceptable max temperature is below the asset temperature"
+		c, err := json.Marshal(contract)
+		stub.PutState("contract/"+txId, c)
+		return nil, err
 	}
 	if asset.MinTemperature < contract.AcceptableMinTemperature {
 		myLogger.Debug("WARNING: Acceptable min temperature is above the asset temperature")
-		return nil, errors.New("min temperature warning")
+		contract.Warnings = "Acceptable min temperature is above the asset temperature"
+		c, err := json.Marshal(contract)
+		stub.PutState("contract/"+txId, c)
+		return nil, err
 	}
 	contract.Completed = true
 	contract.Location = args[2]
@@ -130,7 +138,7 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 	a, err := json.Marshal(asset)
 	stub.PutState("asset/"+contract.AssetID, a)
 
-	return []byte(txId), nil
+	return nil, nil
 }
 
 func (t *TestContractChainCode) update_asset_temperature(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
