@@ -51,3 +51,44 @@ POST localhost:7050/chaincode
   "id": "2"  
 }
 ```
+
+### Start trade
+
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "invoke",
+  "params": {
+    "chaincodeID":{
+        "name":"mycc"
+    },
+"ctorMsg": {
+        "args":["start_trade", "assetid1", "", "4", "10" ]
+    },
+    "secureContext": "lukas"
+  },
+  "id": "4"  
+}
+```
+
+### Complete trade
+
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "invoke",
+  "params": {
+    "chaincodeID":{
+        "name":"mycc2"
+    },
+"ctorMsg": {
+        "args":["complete_trade", "assetid1", "", "4", "10" ]
+    },
+    "secureContext": "lukas"
+  },
+  "id": "4"  
+}
+
+

@@ -51,6 +51,8 @@ type Contract struct {
 	PreviousTxId             string
 	AcceptableMinTemperature uint64
 	AcceptableMaxTemperature uint64
+	Location       string
+	Completed	bool
 }
 
 // Init method will be called during deployment.
@@ -78,11 +80,55 @@ func (t *TestContractChainCode) start_trade(stub shim.ChaincodeStubInterface, ar
 		PreviousTxId:             previousTxId,
 		AcceptableMinTemperature: acceptableMinTemp,
 		AcceptableMaxTemperature: acceptableMaxTemp,
+		Completed:		  false,
+		Location:		  "",
 	}
 	b, err := json.Marshal(contract)
 
 	txId := stub.GetTxID()
 	stub.PutState("contract/"+txId, b)
+
+	return nil, nil
+}
+func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+ //TODO: send money to seller
+//TODO: get the owner from the caller
+	txId := args[0]
+
+	var contract Contract
+	contract_json, err := stub.GetState("contract/"+txId)
+	err = json.Unmarshal(contract_json, &contract)
+	if err != nil {
+		return nil, errors.New("contract id not valid")
+	}
+
+	var asset Asset
+	asset_json, err1 := stub.GetState("asset/"+contract.AssetID)
+	err1 = json.Unmarshal(asset_json, &asset)
+	if err1 != nil {
+		return nil, errors.New("asset not found")
+	}
+
+	if(asset.MaxTemperature > contract.AcceptableMaxTemperature) {
+		myLogger.Debug("WARNING: Acceptable max temperature is below the asset temperature")
+		return nil, errors.New("max temperature warning")
+	}
+	if(asset.MinTemperature < contract.AcceptableMinTemperature) {
+		myLogger.Debug("WARNING: Acceptable min temperature is above the asset temperature")
+		return nil, errors.New("min temperature warning")
+	}
+	contract.Completed = true
+	contract.Location = args[2]
+
+
+	c, err := json.Marshal(contract)
+	myLogger.Debug("Contracti %x", c )
+	stub.PutState("contract/"+txId, c)
+
+	asset.Owner = args[1]
+	a, err := json.Marshal(asset)
+	myLogger.Debug("Asset %x", a)
+	stub.PutState("asset/"+contract.AssetID, a)
 
 	return nil, nil
 }
@@ -132,6 +178,9 @@ func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, functio
 		return t.start_trade(stub, args)
 	}
 
+	if function == "complete_trade" {
+		return t.complete_trade(stub, args)
+	}
 	return nil, nil
 }
 
