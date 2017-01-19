@@ -91,4 +91,23 @@ POST localhost:7050/chaincode
   "id": "5"  
 }
 
+### Query assets
 
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "query",
+  "params": {
+      "type": 1,
+      "chaincodeID":{
+          "name":"mycc2"
+      },
+      "ctorMsg": {
+         "args":["query_asset", "assetid1"]
+      },
+      "secureContext": "lukas"
+  },
+  "id": 3
+}
+```
