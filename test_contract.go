@@ -133,6 +133,39 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 	return nil, nil
 }
 
+func (t *TestContractChainCode) update_asset_temperature(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	assetId := args[0]
+	temperature, err := strconv.ParseUint(args[1], 10, 64)
+	if err != nil {
+		return nil, errors.New("Failed to parse temperature.")
+	}
+	var asset Asset
+	asset_bytes, err1 := stub.GetState("asset/" + assetId)
+	if err1 != nil {
+		return nil, errors.New("asset not found")
+	}
+	err1 = json.Unmarshal(asset_bytes, &asset)
+	if err1 != nil {
+		return nil, errors.New("failed to unmarshal asset")
+	}
+	maxTemp := asset.MaxTemperature
+	if temperature > maxTemp {
+		asset.MaxTemperature = temperature
+	}
+	minTemp := asset.MinTemperature
+	if temperature < minTemp {
+		asset.MinTemperature = temperature
+	}
+	b, err := json.Marshal(asset)
+	if err != nil {
+		return nil, errors.New("failed to marshal asset")
+	}
+
+	stub.PutState("asset/"+assetId, b)
+
+	return nil, nil
+}
+
 func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	if len(args) != 8 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 8")
@@ -189,6 +222,10 @@ func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, functio
 
 	if function == "complete_trade" {
 		return t.complete_trade(stub, args)
+	}
+
+	if function == "update_asset_temperature" {
+		return t.update_asset_temperature(stub, args)
 	}
 	return nil, nil
 }
