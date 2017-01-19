@@ -44,7 +44,7 @@ POST localhost:7050/chaincode
         "name":"mycc"
     },
 "ctorMsg": {
-        "args":["create_supply_chain", "assetid1", "@satoshi", "tuna", "3", "1000", "Ohma" ]
+        "args":["create_supply_chain", "assetid1", "@satoshi", "tuna", "3", "1000", "Ohma", "0", "5" ]
     },
     "secureContext": "lukas"
   },
