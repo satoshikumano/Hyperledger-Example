@@ -36,27 +36,54 @@ type TestContractChainCode struct {
 }
 
 type Asset struct {
-	ID string
-	Owner   string
-	FishName string
-	Weight   uint64
+	ID             string
+	Owner          string
+	FishName       string
+	Weight         uint64
 	MinTemperature uint64
 	MaxTemperature uint64
-	Price uint64
-	Location string
+	Price          uint64
+	Location       string
 }
 
 type Contract struct {
-	AssetID string
-	PreviousTxId string
+	AssetID                  string
+	PreviousTxId             string
+	AcceptableMinTemperature uint64
+	AcceptableMaxTemperature uint64
 }
-
 
 // Init method will be called during deployment.
 // args: contractId(string), seller(string), fishName(uint), price(uint), weight(uint)
 // TODO: confirm what seller value should be for later tracking. ECA/ TCA etc.
 func (t *TestContractChainCode) Init(stub shim.ChaincodeStubInterface, methodName string, args []string) ([]byte, error) {
 	myLogger.Debug("Init Chaincode...done")
+	return nil, nil
+}
+
+func (t *TestContractChainCode) start_trade(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	// TODO: only the owner of asset can execute this function.
+	assetId := args[0]
+	previousTxId := args[1]
+	acceptableMinTemp, err := strconv.ParseUint(args[3], 10, 64)
+	if err != nil {
+		return nil, errors.New("Failed to parse minTemp.")
+	}
+	acceptableMaxTemp, err := strconv.ParseUint(args[3], 10, 64)
+	if err != nil {
+		return nil, errors.New("Failed to parse maxTemp.")
+	}
+	contract := Contract{
+		AssetID:                  assetId,
+		PreviousTxId:             previousTxId,
+		AcceptableMinTemperature: acceptableMinTemp,
+		AcceptableMaxTemperature: acceptableMaxTemp,
+	}
+	b, err := json.Marshal(contract)
+
+	txId := stub.GetTxID()
+	stub.PutState("contract/"+txId, b)
+
 	return nil, nil
 }
 
@@ -80,14 +107,14 @@ func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInter
 	location := args[5]
 
 	asset := Asset{
-		ID:       assetId,
-		Owner:   owner,
-		FishName: fishName,
-		Price:    price,
-		Weight:   weight,
+		ID:             assetId,
+		Owner:          owner,
+		FishName:       fishName,
+		Price:          price,
+		Weight:         weight,
 		MinTemperature: 0,
 		MaxTemperature: 0,
-		Location: location,
+		Location:       location,
 	}
 	b, err := json.Marshal(asset)
 
@@ -97,8 +124,12 @@ func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInter
 }
 
 func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	if(function == "create_supply_chain"){
+	if function == "create_supply_chain" {
 		return t.create_supply_chain(stub, args)
+	}
+
+	if function == "start_trade" {
+		return t.start_trade(stub, args)
 	}
 
 	return nil, nil
@@ -107,7 +138,7 @@ func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, functio
 // args: transaction id
 
 //result:
-   //print all the previous transactions data structure
+//print all the previous transactions data structure
 
 func (t *TestContractChainCode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	myLogger.Debug("Query Chaincode...")
