@@ -133,3 +133,24 @@ POST localhost:7050/chaincode
 }
 ```
 
+### Query contract ancestors
+
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "query",
+  "params": {
+      "type": 1,
+      "chaincodeID":{
+          "name":"mycc2"
+      },
+      "ctorMsg": {
+         "args":["query_contract_ancestors", "{transactionID}"]
+      },
+      "secureContext": "lukas"
+  },
+  "id": 3
+}
+```
+
