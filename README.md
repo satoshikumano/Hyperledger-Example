@@ -84,11 +84,11 @@ POST localhost:7050/chaincode
         "name":"mycc2"
     },
 "ctorMsg": {
-        "args":["complete_trade", "assetid1", "", "4", "10" ]
+        "args":["complete_trade", "c5d13807-e9f4-4037-a026-ef82b737a5aa", "@miguel", "Tokio"]
     },
     "secureContext": "lukas"
   },
-  "id": "4"  
+  "id": "5"  
 }
 
 

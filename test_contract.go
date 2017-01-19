@@ -104,16 +104,19 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 
 	var asset Asset
 	asset_json, err1 := stub.GetState("asset/"+contract.AssetID)
-	err1 = json.Unmarshal(asset_json, &asset)
 	if err1 != nil {
 		return nil, errors.New("asset not found")
 	}
+	err1 = json.Unmarshal(asset_json, &asset)
+	if err1 != nil {
+		return nil, errors.New("failed to unmarshal asset")
+	}
 
-	if(asset.MaxTemperature > contract.AcceptableMaxTemperature) {
+	if(asset.MaxTemperature < contract.AcceptableMaxTemperature) {
 		myLogger.Debug("WARNING: Acceptable max temperature is below the asset temperature")
 		return nil, errors.New("max temperature warning")
 	}
-	if(asset.MinTemperature < contract.AcceptableMinTemperature) {
+	if(asset.MinTemperature > contract.AcceptableMinTemperature) {
 		myLogger.Debug("WARNING: Acceptable min temperature is above the asset temperature")
 		return nil, errors.New("min temperature warning")
 	}
@@ -122,20 +125,18 @@ func (t *TestContractChainCode) complete_trade(stub shim.ChaincodeStubInterface,
 
 
 	c, err := json.Marshal(contract)
-	myLogger.Debug("Contracti %x", c )
 	stub.PutState("contract/"+txId, c)
 
 	asset.Owner = args[1]
 	a, err := json.Marshal(asset)
-	myLogger.Debug("Asset %x", a)
 	stub.PutState("asset/"+contract.AssetID, a)
 
 	return nil, nil
 }
 
 func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 6 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 6")
+	if len(args) != 8 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 8")
 	}
 
 	assetId := args[0]
@@ -152,14 +153,24 @@ func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInter
 
 	location := args[5]
 
+	minTemp, err := strconv.ParseUint(args[6], 10, 64)
+	if err != nil {
+		return nil, errors.New("Failed to parse minTemp.")
+	}
+	maxTemp, err := strconv.ParseUint(args[7], 10, 64)
+	if err != nil {
+		return nil, errors.New("Failed to parse maxTemp.")
+	}
+
+
 	asset := Asset{
 		ID:             assetId,
 		Owner:          owner,
 		FishName:       fishName,
 		Price:          price,
 		Weight:         weight,
-		MinTemperature: 0,
-		MaxTemperature: 0,
+		MinTemperature: minTemp,
+		MaxTemperature: maxTemp,
 		Location:       location,
 	}
 	b, err := json.Marshal(asset)
