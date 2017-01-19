@@ -35,25 +35,38 @@ var myLogger = logging.MustGetLogger("test_contract")
 type TestContractChainCode struct {
 }
 
-type FishContract struct {
-	ID       string
-	Seller   string
+type Asset struct {
+	ID string
+	Owner   string
 	FishName string
-	Price    uint64
 	Weight   uint64
+	MinTemperature uint64
+	MaxTemperature uint64
+	Price uint64
+	Location string
 }
+
+type Contract struct {
+	AssetID string
+	PreviousTxId string
+}
+
 
 // Init method will be called during deployment.
 // args: contractId(string), seller(string), fishName(uint), price(uint), weight(uint)
 // TODO: confirm what seller value should be for later tracking. ECA/ TCA etc.
 func (t *TestContractChainCode) Init(stub shim.ChaincodeStubInterface, methodName string, args []string) ([]byte, error) {
-	myLogger.Debug("Init Chaincode...")
-	if len(args) != 5 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 5")
+	myLogger.Debug("Init Chaincode...done")
+	return nil, nil
+}
+
+func (t *TestContractChainCode) create_supply_chain(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	if len(args) != 6 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 6")
 	}
 
-	contractId := args[0]
-	seller := args[1]
+	assetId := args[0]
+	owner := args[1]
 	fishName := args[2]
 	price, err := strconv.ParseUint(args[3], 10, 64)
 	if err != nil {
@@ -63,28 +76,39 @@ func (t *TestContractChainCode) Init(stub shim.ChaincodeStubInterface, methodNam
 	if err != nil {
 		return nil, errors.New("Failed to parse weight.")
 	}
-	contract := FishContract{
-		ID:       contractId,
-		Seller:   seller,
+
+	location := args[5]
+
+	asset := Asset{
+		ID:       assetId,
+		Owner:   owner,
 		FishName: fishName,
 		Price:    price,
 		Weight:   weight,
+		MinTemperature: 0,
+		MaxTemperature: 0,
+		Location: location,
 	}
-	b, err := json.Marshal(contract)
+	b, err := json.Marshal(asset)
 
-	stub.PutState("contracts/"+contractId, b)
-
-	myLogger.Debug("Init Chaincode...done")
+	stub.PutState("asset/"+assetId, b)
 
 	return nil, nil
 }
 
 func (t *TestContractChainCode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	// TODO: implement it.
+	if(function == "create_supply_chain"){
+		return t.create_supply_chain(stub, args)
+	}
+
 	return nil, nil
 }
 
-// args: contractId(string)
+// args: transaction id
+
+//result:
+   //print all the previous transactions data structure
+
 func (t *TestContractChainCode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	myLogger.Debug("Query Chaincode...")
 	if len(args) != 1 {
