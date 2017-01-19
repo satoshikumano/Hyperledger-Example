@@ -90,6 +90,28 @@ POST localhost:7050/chaincode
   },
   "id": "5"  
 }
+```
+
+### Update asset temperature
+
+```
+POST localhost:7050/chaincode
+{
+  "jsonrpc": "2.0",
+  "method": "invoke",
+  "params": {
+    "chaincodeID":{
+        "name":"mycc2"
+    },
+"ctorMsg": {
+        "args":["update_asset_temperature", "assetid2", "15"]
+    },
+    "secureContext": "lukas"
+  },
+  "id": "5"  
+}
+```
+
 
 ### Query assets
 
